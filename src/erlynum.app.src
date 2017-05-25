@@ -1,0 +1,14 @@
+{application, erlynum,
+ [{description, "Numerical processing"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {applications,
+   [kernel,
+    stdlib
+   ]},
+  {env,[]},
+  {modules, [erlynum_nif, erlynum, nvector, nmatrix]},
+  {maintainers, []},
+  {licenses, []},
+  {links, []}
+ ]}.
