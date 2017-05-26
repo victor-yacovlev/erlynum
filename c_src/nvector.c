@@ -238,6 +238,9 @@ erl_nvector_range(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
     if (!narray_allocate_range(&result.array, &start, &stop, &step, create_options.endpoint, &error)) {
         return make_error(env, error);
     }
+    result.view.offset = 0;
+    result.view.increment = 1;
+    result.view.size = result.array.size0 * result.array.size1;
     return nvector_to_erl_record(env, &result, 0);
 }
 
