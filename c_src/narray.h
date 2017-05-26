@@ -60,6 +60,15 @@ narray_axpy(const narray_t *x,
             const scalar_element_t a,
             const char* *error);
 
+_Bool
+narray_dot(const narray_t *x,
+           const narray_t *y,
+           scalar_element_t * res,
+           _Bool double_precision,
+           const view_params_t x_range,
+           const view_params_t y_range,
+           const char* *error);
+
 
 #ifdef __cplusplus
 } // extern "C"

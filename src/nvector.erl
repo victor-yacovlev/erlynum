@@ -18,7 +18,7 @@
 -export([linspace/3, linspace/4, logspace/3, logspace/4, logspace/5, geomspace/3, geomspace/4]).
 -export([from_list/1, from_list/2, to_list/1, to_list/2]).
 -export([get/2, get/3]).
--export([copy/1, copy/2, sum/2, sum/3, scale/2, scale/3, axpy/3, axpy/4]).
+-export([copy/1, copy/2, sum/2, sum/3, scale/2, scale/3, axpy/3, axpy/4, dot/3, dot/2]).
 
 -define(WE, erlynum_p:wrap_error).
 
@@ -264,3 +264,18 @@ axpy(Y, X, Alpha) -> axpy(Y, X, Alpha, []).
 %% @doc Returns a vector, each element calculated in form `Y ← αX + Y'
 axpy(Y, X, Alpha, Options) ->
     ?WE(erlynum_nif:nvector_axpy(Y, X, Alpha, Options)).
+
+-spec dot(
+    Y               :: erlynum:nvector(),
+    X               :: erlynum:nvector()
+) -> erlynum:nscalar().
+%% @equiv dot(Y, X, [])
+dot(Y, X) -> dot(Y, X, []).
+
+-spec dot(
+    Y               :: erlynum:nvector(),
+    X               :: erlynum:nvector(),
+    Options         :: [ erlynum:create_option() ]
+) -> erlynum:nscalar().
+%% @doc Returns the inner product of two vectors.
+dot(Y, X, Options) -> ?WE(erlynum_nif:nvector_dot(Y, X, Options)).

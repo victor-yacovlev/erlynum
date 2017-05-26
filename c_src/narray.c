@@ -264,3 +264,72 @@ narray_axpy(const narray_t *x,
         return true;
     }
 }
+
+_Bool
+narray_dot(const narray_t *x, const narray_t *y,
+           scalar_element_t *res,
+           _Bool double_precision,
+           const view_params_t x_range,
+           const view_params_t y_range,
+           const char **error)
+{
+    const size_t n = x_range.size > y_range.size ? y_range.size : x_range.size;
+    if (DTSingle!=x->dtype && DTDouble!=x->dtype) {
+        *error = ERR_ARG_NOT_REAL_ARRAY;
+        return false;
+    }
+    if (DTSingle!=y->dtype && DTDouble!=y->dtype) {
+        *error = ERR_ARG_NOT_REAL_ARRAY;
+        return false;
+    }
+    if (x->dtype==y->dtype) {
+        // Use BLAS routines
+        if (double_precision && DTSingle==x->dtype) {
+            return nblas_sdot(n,
+                              (float*)(x->bin.data + x_range.offset*sizeof(float)), x_range.increment,
+                              (float*)(y->bin.data + y_range.offset*sizeof(float)), y_range.increment,
+                              &res->value, res->dtype, error);
+        }
+        else {
+            const size_t item_size = scalar_size(x->dtype);
+            scalar_element_t t;
+            t.dtype = x->dtype;
+            _Bool success =  nblas_dot(n,
+                             x->bin.data + x_range.offset*item_size, x_range.increment,
+                             y->bin.data + y_range.offset*item_size, y_range.increment,
+                             &t.value, t.dtype, error);
+            if (!success) {
+                return false;
+            }
+            res->value = convert_type(t.value, t.dtype, res->dtype);
+            return true;
+        }
+    }
+    else {
+        // Can't use BLAS :-(
+        double dres = 0.0;
+        float  fres = 0.0;
+        double x_val, y_val;
+        size_t x_index, y_index, x_ptr_off, y_ptr_off;
+        const size_t x_size = scalar_size(x->dtype);
+        const size_t y_size = scalar_size(y->dtype);
+        for (size_t i=0; i<n; ++i) {
+            x_index = x_range.offset + i*x_range.increment;
+            y_index = y_range.offset + i*y_range.increment;
+            x_ptr_off = x_index * x_size;
+            y_ptr_off = y_index * y_size;
+            void * xx = x->bin.data + x_ptr_off;
+            void * yy = y->bin.data + y_ptr_off;
+            union { double d; float f; } t;
+            if (DTSingle==x->dtype)     { memcpy(&t, xx, sizeof(float)); x_val = t.f; }
+            else if (DTDouble==x->dtype){ memcpy(&t, xx, sizeof(double));x_val = t.d; }
+            if (DTSingle==y->dtype)     { memcpy(&t, yy, sizeof(float)); y_val = t.f; }
+            else if (DTDouble==y->dtype){ memcpy(&t, yy, sizeof(double));y_val = t.d; }
+            dres += x_val * y_val;
+        }
+        fres = (float) dres;
+        if (DTSingle==res->dtype)       memcpy(&res->value, &fres, sizeof(float));
+        else if (DTDouble==res->dtype)  memcpy(&res->value, &dres, sizeof(double));
+        return true;
+    }
+}

@@ -123,6 +123,88 @@ nblas_axpy(const int n, const scalar_value_t a,
     return true;
 }
 
+_Bool
+nblas_dot(const int n,
+          const void *x, const int incx,
+          const void *y, const int incy,
+          void * out,
+          const dtype_t dtype, const char **error)
+{
+    char blas_func_name[128];
+    nblas_constuct_func_name("dot", 1, &dtype, sizeof(blas_func_name), blas_func_name);
+    static void *func = 0;
+    if (!func)
+        func = resolve_blas_function(blas_func_name);
+    if (!func) {
+        *error = ERR_BLAS_NOTFOUND_DOT;
+        return false;
+    }
+    if (DTSingle==dtype) {
+        float (*f_ptr)(const int, const float*, const int, const float*, const int);
+        f_ptr = func;
+        float res = (*f_ptr)(n, x, incx, y, incy);
+        memcpy(out, &res, sizeof(res));
+    }
+    else if (DTDouble==dtype) {
+        double (*f_ptr)(const int, const double*, const int, const double*, const int);
+        f_ptr = func;
+        double res = (*f_ptr)(n, x, incx, y, incy);
+        memcpy(out, &res, sizeof(res));
+    }
+    else {
+        *error = ERR_BLAS_NOTSUPPORT_DTYPE;
+        return false;
+    }
+    return true;
+}
+
+
+
+_Bool
+nblas_sdot(const int n,
+           const float *sx, const int incx,
+           const float *sy, const int incy,
+           void *out,
+           const dtype_t dtype, const char **error)
+{
+    char blas_func_name[128];
+    if (DTSingle==dtype) {
+        nblas_constuct_func_name("dsdot", 1, &dtype, sizeof(blas_func_name), blas_func_name);
+    }
+    else if (DTDouble==dtype) {
+        nblas_constuct_func_name("sdot", 1, &dtype, sizeof(blas_func_name), blas_func_name);
+    }
+    else {
+        *error = ERR_BLAS_NOTSUPPORT_DTYPE;
+        return false;
+    }
+
+    static void *func = 0;
+    if (!func)
+        func = resolve_blas_function(blas_func_name);
+    if (!func) {
+        *error = ERR_BLAS_NOTFOUND_SDOT;
+        return false;
+    }
+    if (DTSingle==dtype) {
+        float (*f_ptr)(const int, const float, const float*, const int, const float*, const int);
+        f_ptr = func;
+        float res = (*f_ptr)(n, 0, sx, incx, sy, incy);
+        memcpy(out, &res, sizeof(res));
+    }
+    else if (DTDouble==dtype) {
+        double (*f_ptr)(const int, const float*, const int, const float*, const int);
+        f_ptr = func;
+        double res = (*f_ptr)(n, sx, incx, sy, incy);
+        memcpy(out, &res, sizeof(res));
+    }
+    else {
+        *error = ERR_BLAS_NOTSUPPORT_DTYPE;
+        return false;
+    }
+    return true;
+}
+
 
 void
 nblas_constuct_func_name(const char *main_name,
@@ -149,5 +231,6 @@ nblas_constuct_func_name(const char *main_name,
     strncpy(out, CBlasPrefix, CBlasPrefixLen);
     strncpy(out+CBlasPrefixLen+dtypes_count, main_name, out_size-dtypes_count-CBlasPrefixLen);
 }
+
 
 

@@ -14,6 +14,9 @@
 #define ERR_BLAS_NOTFOUND_COPY          "cblas_copy_not_resolved_in_backend"
 #define ERR_BLAS_NOTFOUND_SCAL          "cblas_scal_not_resolved_in_backend"
 #define ERR_BLAS_NOTFOUND_AXPY          "cblas_axpy_not_resolved_in_backend"
+#define ERR_BLAS_NOTFOUND_DOT           "cblas_dot_not_resolved_in_backend"
+#define ERR_BLAS_NOTFOUND_SDOT          "cblas_sdot_not_resolved_in_backend"
+#define ERR_BLAS_NOTSUPPORT_DTYPE       "cblas_unsupported_dtype"
 
 // Errors while parsing broken records or erlynum structures ERR_REC_...
 #define ERR_REC_VIEW                    "bad_view_parameters"
@@ -41,6 +44,8 @@
 #define ERR_ARG_BAD_PRECISION           "bad_precision_value"
 #define ERR_ARG_BAD_SHAPE               "bad_shape_value"
 #define ERR_ARG_BAD_CONVERT             "bad_convert_value"
+#define ERR_ARG_NOT_REAL_ARRAY          "not_real_value_array"
+#define ERR_ARG_NOT_REAL_SCALAR         "not_real_value_scalar"
 
 #endif // ERROR_ATOMS_H
 

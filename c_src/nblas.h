@@ -37,4 +37,18 @@ nblas_axpy(const int n, const scalar_value_t a,
            void *y, const int incy,
            const dtype_t dtype, const char* *error);
 
+_Bool
+nblas_dot(const int n,
+          const void *x, const int incx,
+          const void *y, const int incy,
+          void * out,
+          const dtype_t dtype, const char* *error);
+
+_Bool
+nblas_sdot(const int n,
+           const float *sx, const int incx,
+           const float *sy, const int incy,
+           void * out,
+           const dtype_t dtype, const char* *error);
+
 #endif // NBLAS_H
