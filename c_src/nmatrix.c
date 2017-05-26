@@ -15,7 +15,7 @@ erl_nmatrix_full(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
 
     const char * error = 0;
     create_options_t options;
-    if (!parse_create_options(env, argv[2], &options, 0, &error)) {
+    if (!parse_create_options(env, argv[2], &options, 0, 0, &error)) {
         return make_error(env, error);
     }
 
@@ -63,7 +63,7 @@ erl_nmatrix_eye(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
     }
     const char * error = 0;
     create_options_t options;
-    if (!parse_create_options(env, argv[2], &options, 0, &error)) {
+    if (!parse_create_options(env, argv[2], &options, 0, 0, &error)) {
         return make_error(env, error);
     }
 
@@ -175,7 +175,7 @@ erl_nmatrix_from_list(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
 
     const char * error = 0;
     create_options_t options;
-    if (!parse_create_options(env, argv[1], &options, 0, &error)) {
+    if (!parse_create_options(env, argv[1], &options, 0, 0, &error)) {
         return make_error(env, error);
     }
 

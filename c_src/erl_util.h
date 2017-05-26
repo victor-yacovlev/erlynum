@@ -45,12 +45,6 @@ parse_erl_number(ErlNifEnv * env, const ERL_NIF_TERM term,
                  const char* *error);
 
 _Bool
-parse_range_create_options(ErlNifEnv * env, const ERL_NIF_TERM term,
-                           range_create_options_t * out,
-                           const range_create_options_t * defaults,
-                           const char* *error);
-
-_Bool
 parse_convert_option(ErlNifEnv * env, const ERL_NIF_TERM term,
                      convert_option_t * out,
                      const char* *error);
@@ -59,7 +53,16 @@ _Bool
 parse_create_options(ErlNifEnv * env, const ERL_NIF_TERM term,
                      create_options_t * out,
                      const create_options_t * defaults,
+                     const char* prop_keys_to_ignore,
                      const char* *error);
+
+_Bool
+find_boolean_in_prop_list(ErlNifEnv * env,
+                          const ERL_NIF_TERM term,
+                          const char* key_name,
+                          _Bool * out,
+                          const _Bool defaultValue,
+                          const char* *error);
 
 _Bool
 parse_erl_shape(ErlNifEnv * env, const ERL_NIF_TERM term,

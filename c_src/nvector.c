@@ -19,7 +19,7 @@ erl_nvector_full(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
 
     const char * error = 0;
     create_options_t options;
-    if (!parse_create_options(env, argv[2], &options, 0, &error)) {
+    if (!parse_create_options(env, argv[2], &options, 0, 0, &error)) {
         return make_error(env, error);
     }
 
@@ -74,7 +74,7 @@ erl_nvector_from_list(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
 
     const char * error = 0;
     create_options_t options;
-    if (!parse_create_options(env, argv[1], &options, 0, &error)) {
+    if (!parse_create_options(env, argv[1], &options, 0, 0, &error)) {
         return make_error(env, error);
     }
 
@@ -214,7 +214,10 @@ erl_nvector_range(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
     }
     range_create_options_t create_options;
     const char* error = 0;
-    if (!parse_range_create_options(env, argv[3], &create_options, 0, &error)) {
+    if (!parse_create_options(env, argv[3], &create_options.create_options, 0, "endpoint", &error)) {
+        return make_error(env, error);
+    }
+    if (!find_boolean_in_prop_list(env, argv[3], "endpoint", &create_options.endpoint, false, &error)) {
         return make_error(env, error);
     }
     scalar_element_t start;
@@ -245,13 +248,12 @@ erl_nvector_linspace(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
         return enif_make_badarg(env);
     }
     range_create_options_t create_options;
-    range_create_options_t default_options;
-    memset(&default_options, 0, sizeof(default_options));
-    default_options.endpoint = true;
-    default_options.create_options.dtype = DTAuto;
 
     const char* error = 0;
-    if (!parse_range_create_options(env, argv[3], &create_options, &default_options, &error)) {
+    if (!parse_create_options(env, argv[3], &create_options.create_options, 0, "endpoint", &error)) {
+        return make_error(env, error);
+    }
+    if (!find_boolean_in_prop_list(env, argv[3], "endpoint", &create_options.endpoint, true, &error)) {
         return make_error(env, error);
     }
     scalar_element_t start;
@@ -327,13 +329,12 @@ erl_nvector_logspace(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
         return enif_make_badarg(env);
     }
     range_create_options_t create_options;
-    range_create_options_t default_options;
-    memset(&default_options, 0, sizeof(default_options));
-    default_options.endpoint = true;
-    default_options.create_options.dtype = DTAuto;
 
     const char* error = 0;
-    if (!parse_range_create_options(env, argv[4], &create_options, &default_options, &error)) {
+    if (!parse_create_options(env, argv[4], &create_options.create_options, 0, "endpoint", &error)) {
+        return make_error(env, error);
+    }
+    if (!find_boolean_in_prop_list(env, argv[4], "endpoint", &create_options.endpoint, true, &error)) {
         return make_error(env, error);
     }
     scalar_element_t start;
@@ -504,13 +505,12 @@ erl_nvector_geomspace(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
         return enif_make_badarg(env);
     }
     range_create_options_t create_options;
-    range_create_options_t default_options;
-    memset(&default_options, 0, sizeof(default_options));
-    default_options.endpoint = true;
-    default_options.create_options.dtype = DTAuto;
 
     const char* error = 0;
-    if (!parse_range_create_options(env, argv[3], &create_options, &default_options, &error)) {
+    if (!parse_create_options(env, argv[3], &create_options.create_options, 0, "endpoint", &error)) {
+        return make_error(env, error);
+    }
+    if (!find_boolean_in_prop_list(env, argv[3], "endpoint", &create_options.endpoint, true, &error)) {
         return make_error(env, error);
     }
     scalar_element_t start;
@@ -657,7 +657,7 @@ erl_nvector_copy(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
         return make_error(env, error);
     }
     create_options_t options;
-    if (!parse_create_options(env, argv[1], &options, 0, &error)) {
+    if (!parse_create_options(env, argv[1], &options, 0,  0, &error)) {
         return make_error(env, error);
     }
     dtype_t target_dtype = vec.array.dtype;
@@ -718,7 +718,7 @@ erl_nvector_scale(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
         return make_error(env, error);
     }
     create_options_t options;
-    if (!parse_create_options(env, argv[2], &options, 0, &error)) {
+    if (!parse_create_options(env, argv[2], &options, 0, 0, &error)) {
         return make_error(env, error);
     }
     scalar_element_t alpha;
@@ -774,7 +774,7 @@ erl_nvector_axpy(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
         return make_error(env, error);
     }
     create_options_t options;
-    if (!parse_create_options(env, argv[3], &options, 0, &error)) {
+    if (!parse_create_options(env, argv[3], &options, 0, 0, &error)) {
         return make_error(env, error);
     }
     scalar_element_t alpha;
@@ -834,8 +834,9 @@ erl_nvector_dot(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
     if (!parse_erl_vector(env, argv[1], &x_vec, &error, NULL)) {
         return make_error(env, error);
     }
+    _Bool conjuated = false;
     create_options_t options;
-    if (!parse_create_options(env, argv[2], &options, 0, &error)) {
+    if (!parse_create_options(env, argv[2], &options, 0, 0, &error)) {
         return make_error(env, error);
     }
     scalar_element_t res;
@@ -847,6 +848,7 @@ erl_nvector_dot(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
                     &y_vec.array,
                     &res,
                     PSingle!=options.precision,
+                    conjuated,
                     x_vec.view,
                     y_vec.view,
                     &error))

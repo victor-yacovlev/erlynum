@@ -226,10 +226,25 @@ parse_precision_atom(ErlNifEnv * env, const char* atom_value, const size_t max_l
     return false;
 }
 
+static _Bool
+check_in_coma_separated_string(const char* coma_separated_list, const char* s)
+{
+    if (!coma_separated_list || !s)
+        return false;
+    const char * p = strstr(coma_separated_list, s);
+    if (!p || '\0'==*p) {
+        return false;
+    }
+    size_t s_len = strlen(s);
+    p += s_len;
+    return '\0'==*p || ','==*p;
+}
+
 static
 _Bool
 parse_one_create_option(ErlNifEnv * env, const ERL_NIF_TERM term,
                         create_options_t *out,
+                        const char* prop_keys_to_ignore,
                         const char* *error)
 {
     if (enif_is_tuple(env, term)) {
@@ -257,7 +272,7 @@ parse_one_create_option(ErlNifEnv * env, const ERL_NIF_TERM term,
                 return false;
             }
         }
-        else {
+        else if (!check_in_coma_separated_string(prop_keys_to_ignore, atom_key)) {
             *error = ERR_ARG_BAD_CREATE_OPTION;
             return false;
         }
@@ -266,7 +281,9 @@ parse_one_create_option(ErlNifEnv * env, const ERL_NIF_TERM term,
     else if (enif_is_atom(env, term)) {
         char atom_value[16];    memset(atom_value, 0, sizeof(atom_value));
         if (!parse_precision_atom(env, atom_value, sizeof(atom_value), &out->precision) &&
-                !parse_dtype_atom(atom_value, sizeof(atom_value), &out->dtype))
+                !parse_dtype_atom(atom_value, sizeof(atom_value), &out->dtype) &&
+                !check_in_coma_separated_string(prop_keys_to_ignore, atom_value)
+                )
         {
             *error = ERR_ARG_BAD_CREATE_OPTION;
             return false;
@@ -279,85 +296,53 @@ parse_one_create_option(ErlNifEnv * env, const ERL_NIF_TERM term,
     }
 }
 
-static
+
 _Bool
-parse_one_range_create_option(ErlNifEnv * env, const ERL_NIF_TERM term,
-                        range_create_options_t *out,
-                        const char* *error)
+find_boolean_in_prop_list(ErlNifEnv *env,
+                          const ERL_NIF_TERM term,
+                          const char *key_name,
+                          bool *out,
+                          const bool defaultValue,
+                          const char **error)
 {
-    if (enif_is_tuple(env, term)) {
-        int arity = 0;
-        const ERL_NIF_TERM * items = 0;
-        enif_get_tuple(env, term, &arity, &items);
-        if (2!=arity || !enif_is_atom(env, items[0]) || !enif_is_atom(env, items[1])) {
-            *error = ERR_ARG_BAD_CREATE_OPTION;
-            return false;
-        }
-        char atom_key[16];      memset(atom_key, 0, sizeof(atom_key));
-        char atom_value[16];    memset(atom_value, 0, sizeof(atom_value));
-        enif_get_atom(env, items[0], atom_key, sizeof(atom_key), ERL_NIF_LATIN1);
-        if (0==strncmp("endpoint", atom_key, sizeof(atom_key))) {
-            if (!parse_bool(env, items[1], &out->endpoint, error)) {
-                return false;
+    *error = 0;
+    *out = defaultValue;
+    if (!enif_is_list(env, term)) {
+        *error = ERR_ARG_BAD_PROPLIST;
+        return false;
+    }
+    ERL_NIF_TERM hd = 0, tl = term;
+    char key_atom[64];
+    while (enif_get_list_cell(env, tl, &hd, &tl)) {
+        memset(key_atom, 0, sizeof(key_atom));
+        if (enif_is_atom(env, hd)) {
+            enif_get_atom(env, hd, key_atom, sizeof(key_atom), ERL_NIF_LATIN1);
+            if (0==strncmp(key_atom, key_name, sizeof(key_atom))) {
+                *out = true;
+                return true;
             }
         }
-        else {
-            return parse_one_create_option(env, term, &out->create_options, error);
-        }
-        return true;
-    }
-    else if (enif_is_atom(env, term)) {
-        char atom_value[16];    memset(atom_value, 0, sizeof(atom_value));
-        enif_get_atom(env, term, atom_value, sizeof(atom_value), ERL_NIF_LATIN1);
-        if (0==strncmp("endpoint", atom_value, sizeof(atom_value))) {
-            out->endpoint = true;
-            return true;
-        }
-        else {
-            return parse_one_create_option(env, term, &out->create_options, error);
-        }
-    }
-    else {
-        return parse_one_create_option(env, term, &out->create_options, error);
-    }
-}
-
-
-_Bool
-parse_range_create_options(ErlNifEnv * env, const ERL_NIF_TERM term,
-                           range_create_options_t * out,
-                           const range_create_options_t * defaults,
-                           const char* *error)
-{
-    if (defaults) {
-        memcpy(out, defaults, sizeof(*out));
-    }
-    else {
-        memset(out, 0, sizeof(*out));
-    }
-    if (enif_is_list(env, term)) {
-        ERL_NIF_TERM hd = 0, tl = term;
-        while (enif_get_list_cell(env, tl, &hd, &tl)) {
-            if (!parse_one_range_create_option(env, hd, out, error))
+        else if (enif_is_tuple(env, hd)) {
+            int tuple_arity = 0;
+            const ERL_NIF_TERM * tuple_items = 0;
+            enif_get_tuple(env, hd, &tuple_arity, &tuple_items);
+            if (tuple_arity<2 || !enif_get_atom(env, tuple_items[0], key_atom, sizeof(key_atom), ERL_NIF_LATIN1)) {
+                *error = ERR_ARG_BAD_PROPLIST;
                 return false;
-        }
-    }
-    else if (enif_is_tuple(env, term)) {
-        int arity = 0;
-        const ERL_NIF_TERM * items = 0;
-        enif_get_tuple(env, term, &arity, &items);
-        for (int i=0; i<arity; ++i) {
-            if (!parse_one_range_create_option(env, items[i], out, error))
-                return false;
+            }
+            if (0==strncmp(key_atom, key_name, sizeof(key_atom))) {
+                return parse_bool(env, tuple_items[1], out, error);
+            }
         }
     }
     return true;
 }
 
-
 _Bool
 parse_create_options(ErlNifEnv *env, const ERL_NIF_TERM term,
-                     create_options_t *out, const create_options_t *defaults,
+                     create_options_t *out,
+                     const create_options_t *defaults,
+                     const char* prop_keys_to_ignore,
                      const char **error)
 {
     if (defaults) {
@@ -366,23 +351,18 @@ parse_create_options(ErlNifEnv *env, const ERL_NIF_TERM term,
     else {
         memset(out, 0, sizeof(*out));
     }
+    _Bool status = true;
     if (enif_is_list(env, term)) {
         ERL_NIF_TERM hd = 0, tl = term;
         while (enif_get_list_cell(env, tl, &hd, &tl)) {
-            if (!parse_one_create_option(env, hd, out, error))
-                return false;
+            status = parse_one_create_option(env, hd, out, prop_keys_to_ignore, error) && status;
         }
     }
-    else if (enif_is_tuple(env, term)) {
-        int arity = 0;
-        const ERL_NIF_TERM * items = 0;
-        enif_get_tuple(env, term, &arity, &items);
-        for (int i=0; i<arity; ++i) {
-            if (!parse_one_create_option(env, items[i], out, error))
-                return false;
-        }
+    else {
+        *error = ERR_ARG_BAD_PROPLIST;
+        return false;
     }
-    return true;
+    return status;
 }
 
 _Bool
@@ -733,3 +713,5 @@ max_size(size_t a, size_t b)
 {
     return a > b ? a : b;
 }
+
+

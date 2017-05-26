@@ -39,6 +39,7 @@
 #define ERR_ARG_BAD_NUMBER              "bad_number_value"
 #define ERR_ARG_BAD_BOOL                "bad_boolean_value"
 #define ERR_ARG_BAD_NUMBER_OR_COMPLEX   "bad_number_or_complex_value"
+#define ERR_ARG_BAD_PROPLIST            "bad_property_list"
 #define ERR_ARG_BAD_CREATE_OPTION       "bad_create_option"
 #define ERR_ARG_BAD_DTYPE               "bad_dtype_value"
 #define ERR_ARG_BAD_PRECISION           "bad_precision_value"
