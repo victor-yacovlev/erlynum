@@ -65,4 +65,11 @@ nblas_asum(const int n,
            void * out,
            const dtype_t dtype, const char* *error);
 
+_Bool
+nblas_iamax_iamin(const int n,
+                  _Bool minMode,
+                  const void *x, const int incx,
+                  size_t * out,
+                  const dtype_t dtype, const char* *error);
+
 #endif // NBLAS_H

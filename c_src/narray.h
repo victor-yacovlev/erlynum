@@ -76,6 +76,13 @@ narray_asum(const narray_t *x,
             scalar_element_t * res,
             const char* *error);
 
+_Bool
+narray_iamax_iamin(_Bool minMode,
+                   const narray_t *x,
+                   const view_params_t x_range,
+                   size_t *res,
+                   const char* *error);
+
 
 #ifdef __cplusplus
 } // extern "C"

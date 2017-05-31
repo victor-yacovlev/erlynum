@@ -309,3 +309,41 @@ nblas_asum(const int n,
     }
     return true;
 }
+
+_Bool
+nblas_iamax_iamin(const int n, bool minMode,
+                  const void *x, const int incx,
+                  size_t *out, const dtype_t dtype,
+                  const char **error)
+{
+    static const char * FloatFuncNameMin = "cblas_isamin";
+    static const char * ComplexFuncNameMin = "cblas_icamin";
+    static const char * DoubleFuncNameMin = "cblas_idamin";
+    static const char * DoubleComplexFuncNameMin = "cblas_izamin";
+    static const char * FloatFuncNameMax = "cblas_isamax";
+    static const char * ComplexFuncNameMax = "cblas_icamax";
+    static const char * DoubleFuncNameMax = "cblas_idamax";
+    static const char * DoubleComplexFuncNameMax = "cblas_izamax";
+    const char * blas_func_name = 0;
+    if (minMode) {
+        if (DTSingle==dtype)            blas_func_name = FloatFuncNameMin;
+        else if (DTDouble==dtype)       blas_func_name = DoubleFuncNameMin;
+        else if (DTComplex==dtype)      blas_func_name = ComplexFuncNameMin;
+        else if (DTDoubleComplex==dtype)blas_func_name = DoubleComplexFuncNameMin;
+    }
+    else {
+        if (DTSingle==dtype)            blas_func_name = FloatFuncNameMax;
+        else if (DTDouble==dtype)       blas_func_name = DoubleFuncNameMax;
+        else if (DTComplex==dtype)      blas_func_name = ComplexFuncNameMax;
+        else if (DTDoubleComplex==dtype)blas_func_name = DoubleComplexFuncNameMax;
+    }
+    void *func = resolve_blas_function(blas_func_name);
+    if (!func) {
+        *error = ERR_BLAS_NOTFOUND_ASUM;
+        return false;
+    }
+    size_t (*f_ptr)(const int, const void*, const int);
+    f_ptr = func;
+    *out = (*f_ptr)(n, x, incx);
+    return true;
+}

@@ -892,3 +892,38 @@ erl_nvector_asum(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
     }
     return make_scalar_value(env, res, CVTnoconvert);
 }
+
+ERL_NIF_TERM
+erl_nvector_iamax_iamin(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
+{
+    if (2!=argc) {
+        return enif_make_badarg(env);
+    }
+    const char* error = 0;
+    nvector_t vec;
+    if (!parse_erl_vector(env, argv[0], &vec, &error, NULL)) {
+        return make_error(env, error);
+    }
+    char mode_atom[64]; memset(mode_atom, 0, sizeof(mode_atom));
+    if (!enif_get_atom(env, argv[1], mode_atom, sizeof(mode_atom), ERL_NIF_LATIN1)) {
+        return enif_make_badarg(env);
+    }
+    _Bool minMode;
+    if (0==strncmp("iamin", mode_atom, sizeof(mode_atom))) {
+        minMode = true;
+    }
+    else if (0==strncmp("iamax", mode_atom, sizeof(mode_atom))) {
+        minMode = false;
+    }
+    else {
+        return make_error(env, ERR_ARG_BAD_MIN_MAX_ATOM);
+    }
+    if (0==vec.view.size) {
+        return make_atom(env, "undefined");
+    }
+    size_t result = 0;
+    if (!narray_iamax_iamin(minMode, &vec.array, vec.view, &result, &error)) {
+        return make_error(env, error);
+    }
+    return enif_make_uint64(env, result);
+}

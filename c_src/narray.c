@@ -376,3 +376,15 @@ narray_asum(const narray_t *x,
     const void * data_ptr = x->bin.data + item_size * x_range.offset;
     return nblas_asum(x_range.size, data_ptr, x_range.increment, &res->value, x->dtype, error);
 }
+
+_Bool
+narray_iamax_iamin(_Bool minMode,
+                   const narray_t *x,
+                   const view_params_t x_range,
+                   size_t *res,
+                   const char **error)
+{
+    const size_t item_size = scalar_size(x->dtype);
+    const void * data_ptr = x->bin.data + item_size*x_range.offset;
+    return nblas_iamax_iamin(x_range.size, minMode, data_ptr, x_range.increment, res, x->dtype, error);
+}

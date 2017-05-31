@@ -58,5 +58,8 @@ erl_nvector_dot(ErlNifEnv * env, int argc, const ERL_NIF_TERM argv[]);
 ERL_NIF_TERM
 erl_nvector_asum(ErlNifEnv * env, int argc, const ERL_NIF_TERM argv[]);
 
+ERL_NIF_TERM
+erl_nvector_iamax_iamin(ErlNifEnv * env, int argc, const ERL_NIF_TERM argv[]);
+
 
 #endif // NVECTOR_H

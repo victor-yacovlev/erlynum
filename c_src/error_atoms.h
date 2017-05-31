@@ -48,6 +48,7 @@
 #define ERR_ARG_BAD_CONVERT             "bad_convert_value"
 #define ERR_ARG_NOT_REAL_ARRAY          "not_real_value_array"
 #define ERR_ARG_NOT_REAL_SCALAR         "not_real_value_scalar"
+#define ERR_ARG_BAD_MIN_MAX_ATOM        "bad_min_or_max_mode_atom"
 
 #endif // ERROR_ATOMS_H
 

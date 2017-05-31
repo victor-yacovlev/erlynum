@@ -21,7 +21,15 @@
 -export([linspace/3, linspace/4, logspace/3, logspace/4, logspace/5, geomspace/3, geomspace/4]).
 -export([from_list/1, from_list/2, to_list/1, to_list/2]).
 -export([get/2, get/3]).
--export([copy/1, copy/2, sum/2, sum/3, scale/2, scale/3, axpy/3, axpy/4, dot/3, dot/2, asum/2, asum/1]).
+-export([
+    copy/1, copy/2,
+    sum/2, sum/3,
+    scale/2, scale/3,
+    axpy/3, axpy/4,
+    dot/3, dot/2,
+    asum/2, asum/1,
+    iamax/1, iamin/1
+]).
 
 -define(WE, erlynum_p:wrap_error).
 
@@ -294,6 +302,16 @@ asum(X) -> asum(X, []).
 %% @doc Returns the sum of magnitudes of elements of a real vector, or the sum of magnitudes
 %% of the real and imaginary parts of elements of a complex vector.
 asum(X, Options) -> ?WE(erlynum_nif:nvector_asum(X, Options)).
+
+-spec iamax(X :: erlynum:nvector()) -> non_neg_integer() | undefined.
+%% @doc Returns the lowest index of vector element that has the largest absolute value.
+iamax(X) -> ?WE(erlynum_nif:nvector_iamax_iamin(X, iamax)).
+
+-spec iamin(X :: erlynum:nvector()) -> non_neg_integer() | undefined.
+%% @doc Returns the lowest index of vector element that has the lowest absolute value.
+iamin(X) -> ?WE(erlynum_nif:nvector_iamax_iamin(X, iamin)).
+
+
 % --------------- EUnit testing functions
 
 zeros_empty_test() ->
@@ -367,3 +385,13 @@ asum_complex_test() ->
     VariativeRange = from_list([{-1.0,2.0}, {-3.0,4.0}]),
     ?assertEqual(1.0+2.0+3.0+4.0, asum(PositiveRange)),
     ?assertEqual(1.0+2.0+3.0+4.0, asum(VariativeRange)).
+
+iamax_test() ->
+    ?assertEqual(undefined, iamax(from_list([]))),
+    %                                0  1  2  3  4  5  6  7
+    ?assertEqual(4, iamax(from_list([1,-2, 3, 2,-5, 1, 4, 5]))).
+
+iamin_test() ->
+    ?assertEqual(undefined, iamin(from_list([]))),
+    %                                  0  1  2   3  4  5  6
+    ?assertEqual(4, iamin(from_list([ -2, 3, 2, -5, 1, 4, 5]))).
