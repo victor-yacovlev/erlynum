@@ -70,6 +70,12 @@ narray_dot(const narray_t *x,
            const view_params_t y_range,
            const char* *error);
 
+_Bool
+narray_asum(const narray_t *x,
+            const view_params_t x_range,
+            scalar_element_t * res,
+            const char* *error);
+
 
 #ifdef __cplusplus
 } // extern "C"

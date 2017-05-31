@@ -59,4 +59,10 @@ nblas_dotu_dotc(const int n,
                 void * out,
                 const dtype_t dtype, const char* *error);
 
+_Bool
+nblas_asum(const int n,
+           const void *x, const int incx,
+           void * out,
+           const dtype_t dtype, const char* *error);
+
 #endif // NBLAS_H

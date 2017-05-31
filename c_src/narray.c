@@ -361,3 +361,18 @@ narray_dot(const narray_t *x, const narray_t *y,
     }
     return status;
 }
+
+_Bool
+narray_asum(const narray_t *x,
+            const view_params_t x_range,
+            scalar_element_t *res,
+            const char **error)
+{
+    if (DTSingle==x->dtype || DTComplex==x->dtype)
+        res->dtype = DTSingle;
+    else
+        res->dtype = DTDouble;
+    const size_t item_size = scalar_size(x->dtype);
+    const void * data_ptr = x->bin.data + item_size * x_range.offset;
+    return nblas_asum(x_range.size, data_ptr, x_range.increment, &res->value, x->dtype, error);
+}

@@ -21,7 +21,7 @@
 -export([linspace/3, linspace/4, logspace/3, logspace/4, logspace/5, geomspace/3, geomspace/4]).
 -export([from_list/1, from_list/2, to_list/1, to_list/2]).
 -export([get/2, get/3]).
--export([copy/1, copy/2, sum/2, sum/3, scale/2, scale/3, axpy/3, axpy/4, dot/3, dot/2]).
+-export([copy/1, copy/2, sum/2, sum/3, scale/2, scale/3, axpy/3, axpy/4, dot/3, dot/2, asum/2, asum/1]).
 
 -define(WE, erlynum_p:wrap_error).
 
@@ -283,6 +283,17 @@ dot(Y, X) -> dot(Y, X, []).
 %% @doc Returns the inner product of two vectors.
 dot(Y, X, Options) -> ?WE(erlynum_nif:nvector_dot(Y, X, Options)).
 
+-spec asum(X :: erlynum:nvector()) -> erlynum:nscalar().
+%% @equiv asum(X, [])
+asum(X) -> asum(X, []).
+
+-spec asum(
+    X               :: erlynum:nvector(),
+    Options         :: [ erlynum:create_option() ]
+) -> erlynum:nscalar().
+%% @doc Returns the sum of magnitudes of elements of a real vector, or the sum of magnitudes
+%% of the real and imaginary parts of elements of a complex vector.
+asum(X, Options) -> ?WE(erlynum_nif:nvector_asum(X, Options)).
 % --------------- EUnit testing functions
 
 zeros_empty_test() ->
@@ -336,3 +347,23 @@ full_nonempty_test() ->
     ?assertEqual([{123.0,456.0}, {123.0,456.0}, {123.0,456.0}], to_list(ComplexFull)),
     ?assertEqual([123.0, 123.0, 123.0], to_list(ComplexFull, real)),
     ?assertEqual([123, 123, 123], to_list(ComplexFull, integer)).
+
+asum_real_test() ->
+    Zeros = zeros(5),
+    ?assertEqual(0.0, asum(Zeros)),
+    Ones = ones(5),
+    ?assertEqual(5.0, asum(Ones)),
+    PositiveRange = from_list([1,2,3,4]),
+    VariativeRange = from_list([-1,2,-3,4]),
+    ?assertEqual(1.0+2.0+3.0+4.0, asum(PositiveRange)),
+    ?assertEqual(1.0+2.0+3.0+4.0, asum(VariativeRange)).
+
+asum_complex_test() ->
+    Zeros = zeros(5, [{dtype, z}]),
+    ?assertEqual(0.0, asum(Zeros)),
+    Ones = ones(5, [{dtype, z}]),
+    ?assertEqual(5.0, asum(Ones)),
+    PositiveRange = from_list([{1.0,2.0}, {3.0,4.0}]),
+    VariativeRange = from_list([{-1.0,2.0}, {-3.0,4.0}]),
+    ?assertEqual(1.0+2.0+3.0+4.0, asum(PositiveRange)),
+    ?assertEqual(1.0+2.0+3.0+4.0, asum(VariativeRange)).

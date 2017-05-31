@@ -22,6 +22,7 @@ nif_funcs[] = {
     {"nvector_scale", 3, erl_nvector_scale},
     {"nvector_axpy", 4, erl_nvector_axpy},
     {"nvector_dot", 3, erl_nvector_dot},
+    {"nvector_asum", 2, erl_nvector_asum},
 
     {"nmatrix_full", 3, erl_nmatrix_full},
     {"nmatrix_to_list", 2, erl_nmatrix_to_list},

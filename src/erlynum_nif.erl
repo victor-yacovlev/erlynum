@@ -12,7 +12,8 @@
     nvector_logspace/5, nvector_geomspace/4,
     nmatrix_full/3, nmatrix_to_list/2, nmatrix_from_list/2,
     nmatrix_get/3, nmatrix_eye/4, nmatrix_row/2, nmatrix_col/2,
-    nmatrix_diag/2, nvector_copy/2, nvector_scale/3, nvector_axpy/4, nvector_dot/3]).
+    nmatrix_diag/2, nvector_copy/2, nvector_scale/3, nvector_axpy/4, nvector_dot/3,
+    nvector_asum/2]).
 
 
 init() ->
@@ -51,6 +52,7 @@ nvector_copy(_Vector, _Options) -> ?NL.
 nvector_scale(_Vector, _Alpha, _Options) -> ?NL.
 nvector_axpy(_Y, _X, _Alpha, _Options) -> ?NL.
 nvector_dot(_Y, _X, _Options) -> ?NL.
+nvector_asum(_Vector, _Options) -> ?NL.
 
 nmatrix_full(_Shape, _FillValue, _Options) -> ?NL.
 nmatrix_to_list(_Matrix, _Convert) -> ?NL.

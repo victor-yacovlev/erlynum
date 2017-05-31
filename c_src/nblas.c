@@ -10,6 +10,34 @@
 #include <string.h>
 
 
+
+void
+nblas_constuct_func_name(const char *main_name,
+                         const size_t dtypes_count,
+                         const dtype_t *dtypes,
+                         const size_t out_size,
+                         char *out)
+{
+    static const char* CBlasPrefix = "cblas_";
+    static const size_t CBlasPrefixLen = 6;
+    memset(out, 0, out_size);
+    for (size_t i=0; i<dtypes_count; ++i) {
+        char p;
+        const dtype_t dt = dtypes[i];
+        switch (dt) {
+        case DTSingle:              p = 's'; break;
+        case DTDouble:              p = 'd'; break;
+        case DTComplex:             p = 'c'; break;
+        case DTDoubleComplex:       p = 'z'; break;
+        default:                    p = '_'; break;
+        }
+        out[CBlasPrefixLen+i] = p;
+    }
+    strncpy(out, CBlasPrefix, CBlasPrefixLen);
+    strncpy(out+CBlasPrefixLen+dtypes_count, main_name, out_size-dtypes_count-CBlasPrefixLen);
+}
+
+
 _Bool
 nblas_check_range(const size_t size,
                   const size_t n_iter,
@@ -27,9 +55,7 @@ nblas_copy(const int n, const void *x, const int incx,
 {
     char blas_func_name[128];
     nblas_constuct_func_name("copy", 1, &dtype, sizeof(blas_func_name), blas_func_name);
-    static void *func = 0;
-    if (!func)
-        func = resolve_blas_function(blas_func_name);
+    void *func = resolve_blas_function(blas_func_name);
     if (!func) {
         *error = ERR_BLAS_NOTFOUND_COPY;
         return false;
@@ -47,9 +73,7 @@ nblas_scal(const int n, const scalar_value_t a,
 {
     char blas_func_name[128];
     nblas_constuct_func_name("scal", 1, &dtype, sizeof(blas_func_name), blas_func_name);
-    static void *func = 0;
-    if (!func)
-        func = resolve_blas_function(blas_func_name);
+    void *func = resolve_blas_function(blas_func_name);
     if (!func) {
         *error = ERR_BLAS_NOTFOUND_COPY;
         return false;
@@ -89,9 +113,7 @@ nblas_axpy(const int n, const scalar_value_t a,
 {
     char blas_func_name[128];
     nblas_constuct_func_name("axpy", 1, &dtype, sizeof(blas_func_name), blas_func_name);
-    static void *func = 0;
-    if (!func)
-        func = resolve_blas_function(blas_func_name);
+    void *func = resolve_blas_function(blas_func_name);
     if (!func) {
         *error = ERR_BLAS_NOTFOUND_AXPY;
         return false;
@@ -132,9 +154,7 @@ nblas_dot(const int n,
 {
     char blas_func_name[128];
     nblas_constuct_func_name("dot", 1, &dtype, sizeof(blas_func_name), blas_func_name);
-    static void *func = 0;
-    if (!func)
-        func = resolve_blas_function(blas_func_name);
+    void *func = resolve_blas_function(blas_func_name);
     if (!func) {
         *error = ERR_BLAS_NOTFOUND_DOT;
         return false;
@@ -179,9 +199,7 @@ nblas_sdot(const int n,
         return false;
     }
 
-    static void *func = 0;
-    if (!func)
-        func = resolve_blas_function(blas_func_name);
+    void *func = resolve_blas_function(blas_func_name);
     if (!func) {
         *error = ERR_BLAS_NOTFOUND_SDOT;
         return false;
@@ -222,9 +240,8 @@ nblas_dotu_dotc(const int n,
         nblas_constuct_func_name("dotu_sub", 1, &dtype, sizeof(blas_func_name), blas_func_name);
     }
 
-    static void *func = 0;
-    if (!func)
-        func = resolve_blas_function(blas_func_name);
+    void *func = resolve_blas_function(blas_func_name);
+
     if (!func) {
         *error = ERR_BLAS_NOTFOUND_SDOT;
         return false;
@@ -250,28 +267,45 @@ nblas_dotu_dotc(const int n,
     return true;
 }
 
-void
-nblas_constuct_func_name(const char *main_name,
-                         const size_t dtypes_count,
-                         const dtype_t *dtypes,
-                         const size_t out_size,
-                         char *out)
+
+_Bool
+nblas_asum(const int n,
+           const void *x,
+           const int incx,
+           void *out,
+           const dtype_t dtype,
+           const char **error)
 {
-    static const char* CBlasPrefix = "cblas_";
-    static const size_t CBlasPrefixLen = 6;
-    memset(out, 0, out_size);
-    for (size_t i=0; i<dtypes_count; ++i) {
-        char p;
-        const dtype_t dt = dtypes[i];
-        switch (dt) {
-        case DTSingle:              p = 's'; break;
-        case DTDouble:              p = 'd'; break;
-        case DTComplex:             p = 'c'; break;
-        case DTDoubleComplex:       p = 'z'; break;
-        default:                    p = '_'; break;
-        }
-        out[CBlasPrefixLen+i] = p;
+    static const char * FloatFuncName = "cblas_sasum";
+    static const char * ComplexFuncName = "cblas_scasum";
+    static const char * DoubleFuncName = "cblas_dasum";
+    static const char * DoubleComplexFuncName = "cblas_dzasum";
+    const char * blas_func_name = 0;
+    if (DTSingle==dtype)            blas_func_name = FloatFuncName;
+    else if (DTDouble==dtype)       blas_func_name = DoubleFuncName;
+    else if (DTComplex==dtype)      blas_func_name = ComplexFuncName;
+    else if (DTDoubleComplex==dtype)blas_func_name = DoubleComplexFuncName;
+
+    void *func = resolve_blas_function(blas_func_name);
+    if (!func) {
+        *error = ERR_BLAS_NOTFOUND_ASUM;
+        return false;
     }
-    strncpy(out, CBlasPrefix, CBlasPrefixLen);
-    strncpy(out+CBlasPrefixLen+dtypes_count, main_name, out_size-dtypes_count-CBlasPrefixLen);
+    if (DTSingle==dtype || DTComplex==dtype) {
+        float (*f_ptr)(const int, const void*, const int);
+        f_ptr = func;
+        const float res = (*f_ptr)(n, x, incx);
+        memcpy(out, &res, sizeof(res));
+    }
+    if (DTDouble==dtype || DTDoubleComplex==dtype) {
+        double (*f_ptr)(const int, const void*, const int);
+        f_ptr = func;
+        const double res = (*f_ptr)(n, x, incx);
+        memcpy(out, &res, sizeof(res));
+    }
+    else {
+        *error = ERR_BLAS_NOTSUPPORT_DTYPE;
+        return false;
+    }
+    return true;
 }

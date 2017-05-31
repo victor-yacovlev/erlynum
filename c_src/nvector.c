@@ -864,3 +864,31 @@ erl_nvector_dot(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
     }
     return make_scalar_value(env, res, CVTnoconvert);
 }
+
+ERL_NIF_TERM
+erl_nvector_asum(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
+{
+    if (2!=argc) {
+        return enif_make_badarg(env);
+    }
+    const char* error = 0;
+    nvector_t vec;
+    if (!parse_erl_vector(env, argv[0], &vec, &error, NULL)) {
+        return make_error(env, error);
+    }
+
+    create_options_t options;
+    if (!parse_create_options(env, argv[1], &options, 0, 0, &error)) {
+        return make_error(env, error);
+    }
+    scalar_element_t res;
+    if (!narray_asum(&vec.array, vec.view, &res, &error))
+    {
+        return make_error(env, error);
+    }
+    if (DTAuto!=options.dtype) {
+        res.value = convert_type(res.value, res.dtype, options.dtype);
+        res.dtype = options.dtype;
+    }
+    return make_scalar_value(env, res, CVTnoconvert);
+}
