@@ -51,4 +51,12 @@ nblas_sdot(const int n,
            void * out,
            const dtype_t dtype, const char* *error);
 
+_Bool
+nblas_dotu_dotc(const int n,
+                const void *x, const int incx,
+                const void *y, const int incy,
+                _Bool conjugated,
+                void * out,
+                const dtype_t dtype, const char* *error);
+
 #endif // NBLAS_H

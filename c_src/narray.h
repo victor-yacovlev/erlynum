@@ -65,6 +65,7 @@ narray_dot(const narray_t *x,
            const narray_t *y,
            scalar_element_t * res,
            _Bool double_precision,
+           _Bool conjugated_complex,
            const view_params_t x_range,
            const view_params_t y_range,
            const char* *error);

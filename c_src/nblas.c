@@ -206,6 +206,50 @@ nblas_sdot(const int n,
 }
 
 
+_Bool
+nblas_dotu_dotc(const int n,
+                const void *x, const int incx,
+                const void *y, const int incy,
+                _Bool conjugated,
+                void *out,
+                const dtype_t dtype, const char **error)
+{
+    char blas_func_name[128];
+    if (conjugated) {
+        nblas_constuct_func_name("dotc_sub", 1, &dtype, sizeof(blas_func_name), blas_func_name);
+    }
+    else {
+        nblas_constuct_func_name("dotu_sub", 1, &dtype, sizeof(blas_func_name), blas_func_name);
+    }
+
+    static void *func = 0;
+    if (!func)
+        func = resolve_blas_function(blas_func_name);
+    if (!func) {
+        *error = ERR_BLAS_NOTFOUND_SDOT;
+        return false;
+    }
+    if (DTComplex==dtype) {
+        void (*f_ptr)(const int, const float _Complex *, const int, const float _Complex*, const int, float _Complex*);
+        f_ptr = func;
+        float _Complex res = CMPLXF(0.0f, 0.0f);
+        (*f_ptr)(n, x, incx, y, incy, &res);
+        memcpy(out, &res, sizeof(res));
+    }
+    else if (DTDoubleComplex==dtype) {
+        void (*f_ptr)(const int, const double _Complex *, const int, const double _Complex*, const int, double _Complex*);
+        f_ptr = func;
+        double _Complex res = CMPLX(0.0, 0.0);
+        (*f_ptr)(n, x, incx, y, incy, &res);
+        memcpy(out, &res, sizeof(res));
+    }
+    else {
+        *error = ERR_BLAS_NOTSUPPORT_DTYPE;
+        return false;
+    }
+    return true;
+}
+
 void
 nblas_constuct_func_name(const char *main_name,
                          const size_t dtypes_count,
@@ -231,6 +275,3 @@ nblas_constuct_func_name(const char *main_name,
     strncpy(out, CBlasPrefix, CBlasPrefixLen);
     strncpy(out+CBlasPrefixLen+dtypes_count, main_name, out_size-dtypes_count-CBlasPrefixLen);
 }
-
-
-

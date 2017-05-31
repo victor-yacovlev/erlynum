@@ -269,67 +269,95 @@ _Bool
 narray_dot(const narray_t *x, const narray_t *y,
            scalar_element_t *res,
            _Bool double_precision,
+           _Bool conjugated_complex,
            const view_params_t x_range,
            const view_params_t y_range,
            const char **error)
 {
-    const size_t n = x_range.size > y_range.size ? y_range.size : x_range.size;
-    if (DTSingle!=x->dtype && DTDouble!=x->dtype) {
-        *error = ERR_ARG_NOT_REAL_ARRAY;
-        return false;
-    }
-    if (DTSingle!=y->dtype && DTDouble!=y->dtype) {
-        *error = ERR_ARG_NOT_REAL_ARRAY;
-        return false;
-    }
-    if (x->dtype==y->dtype) {
-        // Use BLAS routines
-        if (double_precision && DTSingle==x->dtype) {
-            return nblas_sdot(n,
-                              (float*)(x->bin.data + x_range.offset*sizeof(float)), x_range.increment,
-                              (float*)(y->bin.data + y_range.offset*sizeof(float)), y_range.increment,
-                              &res->value, res->dtype, error);
-        }
-        else {
-            const size_t item_size = scalar_size(x->dtype);
-            scalar_element_t t;
-            t.dtype = x->dtype;
-            _Bool success =  nblas_dot(n,
-                             x->bin.data + x_range.offset*item_size, x_range.increment,
-                             y->bin.data + y_range.offset*item_size, y_range.increment,
-                             &t.value, t.dtype, error);
-            if (!success) {
-                return false;
-            }
-            res->value = convert_type(t.value, t.dtype, res->dtype);
-            return true;
-        }
+    const size_t x_n = x_range.size;
+    const size_t y_n = y_range.size;
+    const size_t c_n = x_n < y_n ? x_n : y_n;
+    void *real_x = 0, *real_y = 0;
+    const dtype_t c_dtype = common_dtype(x->dtype, y->dtype);
+    const size_t item_size = scalar_size(c_dtype);
+    view_params_t real_x_range = x_range;
+    view_params_t real_y_range = y_range;
+    real_x_range.size = real_y_range.size = c_n;
+    if (c_dtype==x->dtype) {
+        real_x = x->bin.data;
     }
     else {
-        // Can't use BLAS :-(
-        double dres = 0.0;
-        float  fres = 0.0;
-        double x_val, y_val;
-        size_t x_index, y_index, x_ptr_off, y_ptr_off;
-        const size_t x_size = scalar_size(x->dtype);
-        const size_t y_size = scalar_size(y->dtype);
-        for (size_t i=0; i<n; ++i) {
-            x_index = x_range.offset + i*x_range.increment;
-            y_index = y_range.offset + i*y_range.increment;
-            x_ptr_off = x_index * x_size;
-            y_ptr_off = y_index * y_size;
-            void * xx = x->bin.data + x_ptr_off;
-            void * yy = y->bin.data + y_ptr_off;
-            union { double d; float f; } t;
-            if (DTSingle==x->dtype)     { memcpy(&t, xx, sizeof(float)); x_val = t.f; }
-            else if (DTDouble==x->dtype){ memcpy(&t, xx, sizeof(double));x_val = t.d; }
-            if (DTSingle==y->dtype)     { memcpy(&t, yy, sizeof(float)); y_val = t.f; }
-            else if (DTDouble==y->dtype){ memcpy(&t, yy, sizeof(double));y_val = t.d; }
-            dres += x_val * y_val;
+        real_x = enif_alloc(item_size*c_n);
+        if (!real_x) {
+            *error = ERR_GEN_MEMORY_ALLOCATION;
+            return false;
         }
-        fres = (float) dres;
-        if (DTSingle==res->dtype)       memcpy(&res->value, &fres, sizeof(float));
-        else if (DTDouble==res->dtype)  memcpy(&res->value, &dres, sizeof(double));
-        return true;
+        if (!narray_copy(x, real_x, real_x_range, c_dtype, error)) {
+            enif_free(real_x);
+            return false;
+        }
+        real_x_range.increment = 1;
+        real_x_range.offset = 0;
     }
+    if (c_dtype==y->dtype) {
+        real_y = y->bin.data;
+    }
+    else {
+        real_y = enif_alloc(item_size*c_n);
+        if (!real_y) {
+            *error = ERR_GEN_MEMORY_ALLOCATION;
+            if (real_x != x->bin.data) {
+                enif_free(real_x);
+            }
+            return false;
+        }
+        if (!narray_copy(y, real_y, real_y_range, c_dtype, error)) {
+            enif_free(real_y);
+            if (real_x != x->bin.data) {
+                enif_free(real_x);
+            }
+            return false;
+        }
+        real_y_range.increment = 1;
+        real_y_range.offset = 0;
+    }
+
+    _Bool status = false;
+    scalar_element_t t;
+    t.dtype = c_dtype;
+    if (double_precision && DTSingle==c_dtype) {
+        status = nblas_sdot(c_n,
+                            (float*)(real_x + real_x_range.offset*sizeof(float)),
+                            real_x_range.increment,
+                            (float*)(real_y + real_y_range.offset*sizeof(float)),
+                            real_y_range.increment,
+                            &res->value, res->dtype, error);
+    }
+    else if (DTComplex==c_dtype || DTDoubleComplex==c_dtype) {
+        status = nblas_dotu_dotc(c_n,
+                                 real_x + real_x_range.offset*item_size,
+                                 real_x_range.increment,
+                                 real_y + real_y_range.offset*item_size,
+                                 real_y_range.increment,
+                                 conjugated_complex, &t.value, t.dtype, error);
+    }
+    else if (DTComplex!=c_dtype && DTDoubleComplex!=c_dtype) {
+        status = nblas_dot(c_n,
+                           real_x + real_x_range.offset*item_size,
+                           real_x_range.increment,
+                           real_y + real_y_range.offset*item_size,
+                           real_y_range.increment,
+                           &t.value, t.dtype, error);
+
+    }
+    if (real_x != x->bin.data) {
+        enif_free(real_x);
+    }
+    if (real_y != x->bin.data) {
+        enif_free(real_y);
+    }
+    if (!status) {
+        res->value = convert_type(t.value, t.dtype, res->dtype);
+    }
+    return status;
 }

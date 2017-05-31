@@ -281,12 +281,15 @@ parse_one_create_option(ErlNifEnv * env, const ERL_NIF_TERM term,
     else if (enif_is_atom(env, term)) {
         char atom_value[16];    memset(atom_value, 0, sizeof(atom_value));
         if (!parse_precision_atom(env, atom_value, sizeof(atom_value), &out->precision) &&
-                !parse_dtype_atom(atom_value, sizeof(atom_value), &out->dtype) &&
-                !check_in_coma_separated_string(prop_keys_to_ignore, atom_value)
+                !parse_dtype_atom(atom_value, sizeof(atom_value), &out->dtype)
                 )
         {
-            *error = ERR_ARG_BAD_CREATE_OPTION;
-            return false;
+            char atom_key[16];      memset(atom_key, 0, sizeof(atom_key));
+            enif_get_atom(env, term, atom_key, sizeof(atom_key), ERL_NIF_LATIN1);
+            if (!check_in_coma_separated_string(prop_keys_to_ignore, atom_key)) {
+                *error = ERR_ARG_BAD_CREATE_OPTION;
+                return false;
+            }
         }
         return true;
     }

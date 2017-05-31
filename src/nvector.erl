@@ -275,7 +275,7 @@ dot(Y, X) -> dot(Y, X, []).
 -spec dot(
     Y               :: erlynum:nvector(),
     X               :: erlynum:nvector(),
-    Options         :: [ erlynum:create_option() ]
+    Options         :: [ erlynum:create_option() | {conjuated, boolean()}]
 ) -> erlynum:nscalar().
 %% @doc Returns the inner product of two vectors.
 dot(Y, X, Options) -> ?WE(erlynum_nif:nvector_dot(Y, X, Options)).
