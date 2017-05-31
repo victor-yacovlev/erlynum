@@ -347,3 +347,45 @@ nblas_iamax_iamin(const int n, bool minMode,
     *out = (*f_ptr)(n, x, incx);
     return true;
 }
+
+_Bool
+nblas_nrm2(const int n,
+           const void *x,
+           const int incx,
+           void *out,
+           const dtype_t dtype,
+           const char **error)
+{
+    static const char * FloatFuncName = "cblas_snrm2";
+    static const char * ComplexFuncName = "cblas_scnrm2";
+    static const char * DoubleFuncName = "cblas_dnrm2";
+    static const char * DoubleComplexFuncName = "cblas_dznrm2";
+    const char * blas_func_name = 0;
+    if (DTSingle==dtype)            blas_func_name = FloatFuncName;
+    else if (DTDouble==dtype)       blas_func_name = DoubleFuncName;
+    else if (DTComplex==dtype)      blas_func_name = ComplexFuncName;
+    else if (DTDoubleComplex==dtype)blas_func_name = DoubleComplexFuncName;
+
+    void *func = resolve_blas_function(blas_func_name);
+    if (!func) {
+        *error = ERR_BLAS_NOTFOUND_ASUM;
+        return false;
+    }
+    if (DTSingle==dtype || DTComplex==dtype) {
+        float (*f_ptr)(const int, const void*, const int);
+        f_ptr = func;
+        const float res = (*f_ptr)(n, x, incx);
+        memcpy(out, &res, sizeof(res));
+    }
+    if (DTDouble==dtype || DTDoubleComplex==dtype) {
+        double (*f_ptr)(const int, const void*, const int);
+        f_ptr = func;
+        const double res = (*f_ptr)(n, x, incx);
+        memcpy(out, &res, sizeof(res));
+    }
+    else {
+        *error = ERR_BLAS_NOTSUPPORT_DTYPE;
+        return false;
+    }
+    return true;
+}

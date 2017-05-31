@@ -388,3 +388,18 @@ narray_iamax_iamin(_Bool minMode,
     const void * data_ptr = x->bin.data + item_size*x_range.offset;
     return nblas_iamax_iamin(x_range.size, minMode, data_ptr, x_range.increment, res, x->dtype, error);
 }
+
+_Bool
+narray_nrm2(const narray_t *x,
+            const view_params_t x_range,
+            scalar_element_t *res,
+            const char **error)
+{
+    if (DTSingle==x->dtype || DTComplex==x->dtype)
+        res->dtype = DTSingle;
+    else
+        res->dtype = DTDouble;
+    const size_t item_size = scalar_size(x->dtype);
+    const void * data_ptr = x->bin.data + item_size * x_range.offset;
+    return nblas_nrm2(x_range.size, data_ptr, x_range.increment, &res->value, x->dtype, error);
+}

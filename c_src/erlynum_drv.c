@@ -24,6 +24,7 @@ nif_funcs[] = {
     {"nvector_dot", 3, erl_nvector_dot},
     {"nvector_asum", 2, erl_nvector_asum},
     {"nvector_iamax_iamin", 2, erl_nvector_iamax_iamin},
+    {"nvector_nrm2", 2, erl_nvector_nrm2},
 
     {"nmatrix_full", 3, erl_nmatrix_full},
     {"nmatrix_to_list", 2, erl_nmatrix_to_list},

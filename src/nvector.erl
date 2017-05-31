@@ -29,7 +29,7 @@
     dot/3, dot/2,
     asum/2, asum/1,
     iamax/1, iamin/1
-]).
+    , nrm2/2, nrm2/1, euclidean_norm/1, euclidean_norm/2]).
 
 -define(WE, erlynum_p:wrap_error).
 
@@ -311,6 +311,32 @@ iamax(X) -> ?WE(erlynum_nif:nvector_iamax_iamin(X, iamax)).
 %% @doc Returns the lowest index of vector element that has the lowest absolute value.
 iamin(X) -> ?WE(erlynum_nif:nvector_iamax_iamin(X, iamin)).
 
+-spec nrm2(X :: erlynum:nvector()) -> erlynum:nscalar().
+%% @equiv nrm2(X, [])
+nrm2(X) -> nrm2(X, []).
+
+-spec nrm2(
+    X               :: erlynum:nvector(),
+    Options         :: [ erlynum:create_option() ]
+) -> erlynum:nscalar().
+%% @doc Returns the Euclidean norm of vector.
+%%
+%% The function is named `nrm2' to match corresponding function name in BLAST.
+%% It is better to use `euclidean_norm' function for better readability.
+nrm2(X, Options) -> ?WE(erlynum_nif:nvector_nrm2(X, Options)).
+
+-spec euclidean_norm(X :: erlynum:nvector()) -> erlynum:nscalar().
+%% @doc equiv nrm2(X, [])
+euclidean_norm(X) -> nrm2(X).
+
+-spec euclidean_norm(
+    X               :: erlynum:nvector(),
+    Options         :: [ erlynum:create_option() ]
+) -> erlynum:nscalar().
+%% @equiv nrm2(X, Options)
+euclidean_norm(X, Options) -> nrm2(X, Options).
+
+
 
 % --------------- EUnit testing functions
 
@@ -395,3 +421,6 @@ iamin_test() ->
     ?assertEqual(undefined, iamin(from_list([]))),
     %                                  0  1  2   3  4  5  6
     ?assertEqual(4, iamin(from_list([ -2, 3, 2, -5, 1, 4, 5]))).
+
+euclidean_norm_test() ->
+    ?assertEqual(0.0, euclidean_norm(zeros(5))).
