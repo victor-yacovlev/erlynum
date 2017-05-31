@@ -5,6 +5,7 @@
 -define(APPNAME, erlynum).
 
 -on_load(init/0).
+-export([backend_in_use/0]).
 
 -export([
     nvector_full/3, nvector_from_list/2, nvector_to_list/2,
@@ -30,6 +31,7 @@ init() ->
             {error, Reason}
     end.
 
+backend_in_use() -> erlynum_drv_not_loaded.
 
 load_driver() ->
     PrivDir = code:priv_dir(?APPNAME),

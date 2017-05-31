@@ -9,6 +9,7 @@
 static ErlNifFunc
 nif_funcs[] = {
     {"init_backend", 2, erl_init_backend},
+    {"backend_in_use", 0, erl_backend_in_use},
 
     {"nvector_full", 3, erl_nvector_full},
     {"nvector_from_list", 2, erl_nvector_from_list},

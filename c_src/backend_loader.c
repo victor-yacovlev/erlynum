@@ -32,3 +32,21 @@ erl_init_backend(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
                 : make_error(env, error);
     }
 }
+
+ERL_NIF_TERM
+erl_backend_in_use(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
+{
+    if (0!=argc) {
+        return enif_make_badarg(env);
+    }
+    const blas_backend_driver_t driver = backend_in_use();
+    const char * name = 0;
+    switch (driver) {
+    case DrvNone:       name = "no_backend";    break;
+    case DrvIntelMKL:   name = "mkl";           break;
+    case DrvATLAS:      name = "atlas";         break;
+    case DrvNetlibBLAS: name = "blas";          break;
+    default:            name = "other";         break;
+    }
+    return make_atom(env, name);
+}

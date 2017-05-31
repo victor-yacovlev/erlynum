@@ -12,6 +12,8 @@
 
 %% @type precision() = single | double.
 %% Preferred floating point precision.
+-export([backend_in_use/0]).
+
 -type precision()       ::  single | double.
 
 %% @type dtype() = s | d | c | z.
@@ -61,3 +63,7 @@
 -type narray()          ::  nvector() | nmatrix().
 
 -type nscalar()         ::  number() | complex().
+
+-spec backend_in_use() -> erlynum_drv_not_loaded | mkl | atlas | blas.
+%% @doc Returns information on current BLAS backend to be in use.
+backend_in_use() -> erlynum_nif:backend_in_use().

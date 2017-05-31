@@ -12,6 +12,15 @@
 #include <unistd.h>
 
 static void * Lib_Ptr = 0;
+static blas_backend_driver_t Backend_In_Use = DrvNone;
+
+#pragma GCC diagnostic ignored "-Wmissing-prototypes"
+blas_backend_driver_t
+backend_in_use()
+{
+    return Backend_In_Use;
+}
+#pragma GCC diagnostic pop
 
 static _Bool
 take_next_path(const char * s, char *head, size_t head_size, const char* *tail)
@@ -155,6 +164,7 @@ load_atlas(const char* *error, const char* *error_reason)
     }
 
     Lib_Ptr = atlas_lib;
+    Backend_In_Use = DrvATLAS;
     return true;
 }
 
@@ -199,6 +209,7 @@ load_blas(const char* *error, const char* *error_reason)
     }
 
     Lib_Ptr = cblas_lib;
+    Backend_In_Use = DrvNetlibBLAS;
     return true;
 }
 
@@ -216,6 +227,7 @@ load_intel_mkl(const char* *error, const char* *error_reason)
         return false;
     }
     Lib_Ptr = mkl_rt_lib;
+    Backend_In_Use = DrvIntelMKL;
     return true;
 }
 
