@@ -30,6 +30,7 @@ include_directories(${ERL_INTERFACE_INCLUDE_DIR})
 
 set(COMMON_FLAGS "-Werror -Wall -Wmaybe-uninitialized -Wreturn-type -Wnonnull -Wstrict-aliasing")
 set(CMAKE_C_FLAGS "-std=c99 -D_GNU_SOURCE -Wmissing-prototypes ${COMMON_FLAGS}")
+set(CMAKE_CXX_FLAGS "-std=c++11 -D_GNU_SOURCE -Wmissing-prototypes ${COMMON_FLAGS}")
 
 set(SOURCES
     erlynum_drv.c
@@ -42,6 +43,7 @@ set(SOURCES
     nvector.c
     nmatrix.c
     nblas.c
+    blas_fallback.c
 )
 
 set(DRIVER_OUTPUT "${PROJECT_NAME}_drv")

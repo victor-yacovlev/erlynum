@@ -1,4 +1,5 @@
 #include "backend_loader.h"
+#include "blas_fallback.h"
 #include "error_atoms.h"
 #ifdef _POSIX_SOURCE
 
@@ -282,9 +283,14 @@ init_backend(const char *priv_dir, const char *backend_name,
 void*
 resolve_blas_function(const char* func_name)
 {
-    if (!Lib_Ptr)
-        return 0;    
-    return dlsym(Lib_Ptr, func_name);
+    void* func = 0;
+    if (Lib_Ptr) {
+        func = dlsym(Lib_Ptr, func_name);
+    }
+    if (!func) {
+        func = resolve_fallback_function(func_name);
+    }
+    return func;
 }
 
 #endif // _POSIX_SOURCE

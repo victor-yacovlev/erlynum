@@ -16,7 +16,9 @@
 #define ERR_BLAS_NOTFOUND_AXPY          "cblas_axpy_not_resolved_in_backend"
 #define ERR_BLAS_NOTFOUND_DOT           "cblas_dot_not_resolved_in_backend"
 #define ERR_BLAS_NOTFOUND_SDOT          "cblas_sdot_not_resolved_in_backend"
-#define ERR_BLAS_NOTFOUND_ASUM          "cblas_sdot_not_resolved_in_backend"
+#define ERR_BLAS_NOTFOUND_ASUM          "cblas_asum_not_resolved_in_backend"
+#define ERR_BLAS_NOTFOUND_IAMIN         "cblas_iamin_not_resolved_in_backend"
+#define ERR_BLAS_NOTFOUND_IAMAX         "cblas_iamax_not_resolved_in_backend"
 #define ERR_BLAS_NOTSUPPORT_DTYPE       "cblas_unsupported_dtype"
 
 // Errors while parsing broken records or erlynum structures ERR_REC_...

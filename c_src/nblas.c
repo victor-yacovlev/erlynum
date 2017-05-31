@@ -337,9 +337,9 @@ nblas_iamax_iamin(const int n, bool minMode,
         else if (DTComplex==dtype)      blas_func_name = ComplexFuncNameMax;
         else if (DTDoubleComplex==dtype)blas_func_name = DoubleComplexFuncNameMax;
     }
-    void *func = resolve_blas_function(blas_func_name);
+    void *func = resolve_blas_function(blas_func_name);    
     if (!func) {
-        *error = ERR_BLAS_NOTFOUND_ASUM;
+        *error = minMode ? ERR_BLAS_NOTFOUND_IAMIN : ERR_BLAS_NOTFOUND_IAMAX;
         return false;
     }
     size_t (*f_ptr)(const int, const void*, const int);
