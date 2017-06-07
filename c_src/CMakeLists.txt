@@ -28,9 +28,9 @@ include_directories(${ERTS_INCLUDE_DIR})
 include_directories(${ERL_INTERFACE_INCLUDE_DIR})
 
 
-set(COMMON_FLAGS "-Werror -Wall -Wmaybe-uninitialized -Wreturn-type -Wnonnull -Wstrict-aliasing")
-set(CMAKE_C_FLAGS "-std=c99 -D_GNU_SOURCE -Wmissing-prototypes ${COMMON_FLAGS}")
-set(CMAKE_CXX_FLAGS "-std=c++11 -D_GNU_SOURCE -Wmissing-prototypes ${COMMON_FLAGS}")
+set(COMMON_FLAGS "-finline-functions -Werror -Wall -Wmaybe-uninitialized -Wreturn-type -Wnonnull -Wstrict-aliasing")
+set(CMAKE_C_FLAGS "-std=c99 -O3 -D_GNU_SOURCE -Wmissing-prototypes ${COMMON_FLAGS}")
+set(CMAKE_CXX_FLAGS "-std=c++11 -D_GNU_SOURCE ${COMMON_FLAGS}")
 
 set(SOURCES
     erlynum_drv.c
