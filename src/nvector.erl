@@ -28,8 +28,10 @@
     axpy/3, axpy/4,
     dot/3, dot/2,
     asum/2, asum/1,
-    iamax/1, iamin/1
-    , nrm2/2, nrm2/1, euclidean_norm/1, euclidean_norm/2]).
+    iamax/1, iamin/1,
+    nrm2/2, nrm2/1,
+    euclidean_norm/1, euclidean_norm/2
+]).
 
 -define(WE, erlynum_p:wrap_error).
 
@@ -336,91 +338,3 @@ euclidean_norm(X) -> nrm2(X).
 %% @equiv nrm2(X, Options)
 euclidean_norm(X, Options) -> nrm2(X, Options).
 
-
-
-% --------------- EUnit testing functions
-
-zeros_empty_test() ->
-    NVector = zeros(0),
-    {RowsCount, ColsCount} = NVector#nvector.shape,
-    TotalCount = RowsCount * ColsCount,
-    ?assertEqual(0, TotalCount),
-    BinData = NVector#nvector.data,
-    ?assertEqual(0, byte_size(BinData)),
-    ?assertEqual(0, NVector#nvector.view#view_params.size).
-
-zeros_nonempty_test() ->
-    Zeros = zeros(5),
-    ?assertEqual([0.0, 0.0, 0.0, 0.0, 0.0], to_list(Zeros)),
-    ?assertEqual([0, 0, 0, 0, 0], to_list(Zeros, integer)),
-    ComplexZeros = zeros(5, [{dtype, c}]),
-    ?assertEqual([{0.0,0.0}, {0.0,0.0}, {0.0,0.0}, {0.0,0.0}, {0.0,0.0}], to_list(ComplexZeros)),
-    ?assertEqual([0, 0, 0, 0, 0], to_list(ComplexZeros, integer)).
-
-ones_empty_test() ->
-    NVector = ones(0),
-    {RowsCount, ColsCount} = NVector#nvector.shape,
-    TotalCount = RowsCount * ColsCount,
-    ?assertEqual(0, TotalCount),
-    BinData = NVector#nvector.data,
-    ?assertEqual(0, byte_size(BinData)),
-    ?assertEqual(0, NVector#nvector.view#view_params.size).
-
-ones_nonempty_test() ->
-    Ones = ones(5),
-    ?assertEqual([1.0, 1.0, 1.0, 1.0, 1.0], to_list(Ones)),
-    ?assertEqual([1, 1, 1, 1, 1], to_list(Ones, integer)),
-    ComplexOnes = ones(5, [{dtype, c}]),
-    ?assertEqual([{1.0,0.0}, {1.0,0.0}, {1.0,0.0}, {1.0,0.0}, {1.0,0.0}], to_list(ComplexOnes)),
-    ?assertEqual([1, 1, 1, 1, 1], to_list(ComplexOnes, integer)).
-
-full_empty_test() ->
-    NVector = full(0, 123),
-    {RowsCount, ColsCount} = NVector#nvector.shape,
-    TotalCount = RowsCount * ColsCount,
-    ?assertEqual(0, TotalCount),
-    BinData = NVector#nvector.data,
-    ?assertEqual(0, byte_size(BinData)),
-    ?assertEqual(0, NVector#nvector.view#view_params.size).
-
-full_nonempty_test() ->
-    Full = full(5, 123),
-    ?assertEqual([123.0, 123.0, 123.0, 123.0, 123.0], to_list(Full)),
-    ?assertEqual([123, 123, 123, 123, 123], to_list(Full, integer)),
-    ComplexFull = full(3, {123,456}),
-    ?assertEqual([{123.0,456.0}, {123.0,456.0}, {123.0,456.0}], to_list(ComplexFull)),
-    ?assertEqual([123.0, 123.0, 123.0], to_list(ComplexFull, real)),
-    ?assertEqual([123, 123, 123], to_list(ComplexFull, integer)).
-
-asum_real_test() ->
-    Zeros = zeros(5),
-    ?assertEqual(0.0, asum(Zeros)),
-    Ones = ones(5),
-    ?assertEqual(5.0, asum(Ones)),
-    PositiveRange = from_list([1,2,3,4]),
-    VariativeRange = from_list([-1,2,-3,4]),
-    ?assertEqual(1.0+2.0+3.0+4.0, asum(PositiveRange)),
-    ?assertEqual(1.0+2.0+3.0+4.0, asum(VariativeRange)).
-
-asum_complex_test() ->
-    Zeros = zeros(5, [{dtype, z}]),
-    ?assertEqual(0.0, asum(Zeros)),
-    Ones = ones(5, [{dtype, z}]),
-    ?assertEqual(5.0, asum(Ones)),
-    PositiveRange = from_list([{1.0,2.0}, {3.0,4.0}]),
-    VariativeRange = from_list([{-1.0,2.0}, {-3.0,4.0}]),
-    ?assertEqual(1.0+2.0+3.0+4.0, asum(PositiveRange)),
-    ?assertEqual(1.0+2.0+3.0+4.0, asum(VariativeRange)).
-
-iamax_test() ->
-    ?assertEqual(undefined, iamax(from_list([]))),
-    %                                0  1  2  3  4  5  6  7
-    ?assertEqual(4, iamax(from_list([1,-2, 3, 2,-5, 1, 4, 5]))).
-
-iamin_test() ->
-    ?assertEqual(undefined, iamin(from_list([]))),
-    %                                  0  1  2   3  4  5  6
-    ?assertEqual(4, iamin(from_list([ -2, 3, 2, -5, 1, 4, 5]))).
-
-euclidean_norm_test() ->
-    ?assertEqual(0.0, euclidean_norm(zeros(5))).
